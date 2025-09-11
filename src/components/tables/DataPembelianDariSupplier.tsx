@@ -12,6 +12,12 @@ import { InfoIcon } from "@/icons";
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
 import clsx from "clsx";
+import ComponentCard from "../common/ComponentCard";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import { format } from "path";
+
+const MySwal = withReactContent(Swal);
 
 interface Order {
   id: number;
@@ -21,10 +27,87 @@ interface Order {
   termin: string;
   tempo: string;
   total_harga: string;
-  sisa_hutang: string;
+  items: {
+    id: number;
+    qty: number;
+    subtotal: number;
+    produk: {
+      kode_produk: string;
+      nama_produk: string;
+      satuan: string;
+      harga_suplier: number;
+    };
+  }[];
 }
 
-export default function DataHistoriPembayaranHutang({
+// modal detail barang yang di beli ke supplier
+const handleDetail = (order: Order) => {
+  // format rupiah
+  function formatRupiah(value: string | number) {
+    const numberString = value.toString().replace(/\D/g, "");
+    return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  console.log("data = ", order);
+
+  MySwal.fire({
+    background: "#23272a",
+    color: "#fff",
+    backdrop: "rgba(0, 0, 0, 0.5)",
+    theme: "dark",
+    html: (
+      <div className="flex w-full flex-col">
+        <div className="mb-5 flex flex-col items-start gap-y-1">
+          <h1 className="text-3xl">Detail Pembelian</h1>
+          <p>Informasi detail produk dibeli dari supplier</p>
+        </div>
+        {order.items.map((item) => (
+          <section
+            key={item.id}
+            className="mb-5 flex w-full flex-col gap-y-1 rounded-2xl bg-black/50 p-5"
+          >
+            <div className="mb-5 flex border-b border-b-gray-600 py-4">
+              <h1 className="text-2xl">{item.produk.nama_produk}</h1>
+            </div>
+            <div className="mb-3 flex w-full items-center justify-between">
+              <h2>Kode Produk</h2>
+              <p>{item.produk.kode_produk}</p>
+            </div>
+            <div className="mb-3 flex w-full items-center justify-between">
+              <h2>Nama Produk</h2>
+              <p>{item.produk.nama_produk}</p>
+            </div>
+            <div className="mb-3 flex w-full items-center justify-between">
+              <h2>Satuan</h2>
+              <p>{item.produk.satuan}</p>
+            </div>
+            <div className="mb-3 flex w-full items-center justify-between">
+              <h2>Harga Per Satuan</h2>
+              <p>Rp. {formatRupiah(String(item.produk.harga_suplier))}</p>
+            </div>
+            <div className="mb-3 flex w-full items-center justify-between">
+              <h2>Qty</h2>
+              <p>{item.qty}</p>
+            </div>
+            <div className="mb-3 flex w-full items-center justify-between">
+              <h2>Subtotal</h2>
+              <p>Rp. {formatRupiah(String(item.subtotal))}</p>
+            </div>
+
+            {/* <p>Nama Produk: {item.produk.nama_produk}</p>
+            <p>Kode Produk: {item.produk.kode_produk}</p>
+            <p>Qty: {item.qty}</p>
+            <p>Subtotal: {item.subtotal}</p> */}
+          </section>
+        ))}
+      </div>
+    ),
+    showCloseButton: true,
+  });
+};
+// modal detail barang yang di beli ke supplier
+
+export default function DataHistoriPembelian({
   kode_supplier,
 }: {
   kode_supplier: string;
@@ -81,6 +164,7 @@ export default function DataHistoriPembayaranHutang({
   const filteredData = data.filter(
     (item) => item.kode_supplier === kode_supplier,
   );
+  //   filter data pembelian berdasarkan kode supplier
 
   // --- Pagination logic ---
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -196,19 +280,12 @@ export default function DataHistoriPembayaranHutang({
                       )}
                     </TableCell>
                     <div className="mt-3 pl-6">
-                      <Link
-                        href={`/stok/detail?id_stok=${order.id}`}
-                        className="mt-2"
-                        title="Detail Pembelian Barang"
+                      <button
+                        className={"text-brand-500 scale-[85%] cursor-pointer"}
+                        onClick={() => handleDetail(order)}
                       >
-                        <button
-                          className={
-                            "text-brand-500 scale-[85%] cursor-pointer"
-                          }
-                        >
-                          <InfoIcon />
-                        </button>
-                      </Link>
+                        <InfoIcon />
+                      </button>
                     </div>
                   </TableRow>
                 ))}

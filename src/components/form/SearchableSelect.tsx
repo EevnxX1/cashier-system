@@ -12,6 +12,8 @@ interface SearchableSelectProps {
   placeholder?: string;
   onChange: (value: string) => void;
   className?: string;
+  defaultValue?: string;
+  disabled?: boolean; // Tambahkan ini
 }
 
 const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -19,14 +21,26 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   placeholder = "Cari atau pilih...",
   onChange,
   className = "",
+  defaultValue,
+  disabled = false, // Tambahkan ini
 }) => {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Option | null>(null);
 
+  // Set default value saat mount
+  React.useEffect(() => {
+    if (defaultValue) {
+      const found = options.find((opt) => opt.value === defaultValue);
+      if (found) {
+        setSelected(found);
+      }
+    }
+  }, [defaultValue, options]);
+
   // Filter options berdasarkan input
   const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(search.toLowerCase())
+    opt.label.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleSelect = (option: Option) => {
@@ -40,25 +54,34 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
     <div className={`relative w-full ${className}`}>
       {/* Input search / display */}
       <div
-        className="h-11 flex items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm shadow-sm cursor-pointer dark:border-gray-700 dark:bg-gray-900"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`flex h-11 cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900 ${
+          disabled ? "cursor-not-allowed" : ""
+        }`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
       >
-        <span className={selected ? "text-gray-900 dark:text-white" : "text-gray-400"}>
+        <span
+          className={
+            selected ? "text-gray-900 dark:text-white" : "text-gray-400"
+          }
+        >
           {selected ? selected.label : placeholder}
         </span>
         <span className="ml-2 text-gray-400">▼</span>
       </div>
 
       {/* Dropdown */}
-      {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900 z-10">
+      {isOpen && !disabled && (
+        <div className="absolute right-0 left-0 z-10 mt-1 rounded-lg border border-gray-300 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
           {/* Search input */}
           <input
             type="text"
             placeholder="Ketik untuk mencari..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-sm border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white outline-none"
+            className="w-full border-b border-gray-200 px-3 py-2 text-sm outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+            disabled={disabled}
           />
 
           {/* Options */}
@@ -67,7 +90,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
               filteredOptions.map((option) => (
                 <li
                   key={option.value}
-                  className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white"
+                  className="cursor-pointer px-3 py-2 text-sm hover:bg-gray-100 dark:text-white dark:hover:bg-gray-800"
                   onClick={() => handleSelect(option)}
                 >
                   {option.label}

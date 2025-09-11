@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 
 // Definisi tipe konteks otentikasi
 interface AuthContextType {
+  token: string | null; // Token autentikasi
   login: (username: string, password: string) => Promise<void>; // Fungsi login
   register: (
     name: string,
@@ -23,6 +24,7 @@ interface AuthContextType {
 
 // Inisialisasi context dengan default kosong
 const AuthContext = createContext<AuthContextType>({
+  token: null,
   login: async () => {},
   register: async () => {},
   logout: () => {},
@@ -31,32 +33,67 @@ const AuthContext = createContext<AuthContextType>({
 // Provider komponen yang membungkus seluruh aplikasi
 export function AuthProvider({ children }: { children: ReactNode }) {
   const url = `${process.env.NEXT_PUBLIC_API_URL}/api/`;
-  const [name, setName] = useState<string | null>(null); // State menyimpan token
-  const [role, setRole] = useState<string | null>(null); // State menyimpan token
-  const [iduser, setIduser] = useState<string | null>(null); // State menyimpan token
+  const [token, setToken] = useState<string | null>(null); // State menyimpan token
   const router = useRouter(); // Hook navigasi
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const name = localStorage.getItem("name_user");
-    const role = localStorage.getItem("role");
-    const id = localStorage.getItem("id_user");
-    if (name && role && id) {
-      setName(name);
-      setRole(role);
-      setIduser(id);
+    const token = localStorage.getItem("token");
+    if (token) {
+      setToken(token);
     }
-    setIsLoading(false); // Selesai cek localStorage
   }, []);
 
+  // Cek jika user belum login, arahkan ke halaman signin
   useEffect(() => {
-    if (!isLoading && (!name || !role || !iduser)) {
-      toast.info("Silahkan Login Terlebih Dahulu", {
-        theme: "dark",
-      });
-      router.push("/signin");
-    }
-  }, [isLoading, name, role, iduser, router]);
+    const fetchDataWithAuth = async () => {
+      // 1. Ambil token dari localStorage
+      const token = localStorage.getItem("token");
+
+      // 2. Periksa apakah token ada
+      if (!token) {
+        toast.info("Silahkan Login Terlebih Dahulu", {
+          theme: "dark",
+        });
+        router.push("/signin");
+        return; // Hentikan proses jika tidak ada token
+      }
+
+      try {
+        // 3. Tambahkan Authorization header ke permintaan fetch
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        // Tangani jika respons tidak ok (misal 401 Unauthorized)
+        if (response.status == 201 || response.status == 200) {
+          console.log("Data berhasil terautentikasi");
+        } else {
+          toast.info("Silahkan Login Terlebih Dahulu", {
+            theme: "dark",
+          });
+          router.push("/signin");
+        }
+      } catch (err) {
+        console.error("Gagal ambil data:", err);
+      }
+    };
+
+    fetchDataWithAuth();
+  }, [router]);
+
+  // useEffect(() => {
+  //   if (!isLoading && !token) {
+  //     toast.info("Silahkan Login Terlebih Dahulu", {
+  //       theme: "dark",
+  //     });
+  //     router.push("/signin");
+  //   }
+  // }, [isLoading, token, router]);
   // ...existing code...
 
   // Fungsi login: kirim email/password ke API, simpan token, redirect
@@ -71,12 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("Data:", data);
     console.log(data.user.id);
     if (res.status === 201 || res.status === 200) {
-      setName(data.user.name);
-      setRole(data.user.role);
-      setIduser(data.user.id);
-      localStorage.setItem("name_user", data.user.name);
-      localStorage.setItem("role", data.user.role);
-      localStorage.setItem("id_user", data.user.id);
+      setToken(data.token); // Simpan token di state
+      localStorage.setItem("token", data.token); // Simpan token di localStorage
       router.push("/"); // Arahkan ke halaman utama
     } else {
       throw new Error(data.message || "Login failed"); // Lempar error jika gagal
@@ -105,19 +138,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Fungsi logout: hapus token dan redirect ke halaman login
-  const logout = () => {
-    setIduser(null); // Reset state
-    setName(null); // Reset state
-    setRole(null); // Reset state
-    localStorage.removeItem("name_user");
-    localStorage.removeItem("role");
-    localStorage.removeItem("id_user");
-    // Hapus dari localStorage
-    router.push("/signin"); // Arahkan ke login
+  const logout = async () => {
+    const res = await fetch(`${url}logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status == 200 || res.status == 201) {
+      toast.success("Berhasil Logout", {
+        theme: "dark",
+      });
+      setToken(null);
+      localStorage.removeItem("token");
+      // Hapus dari localStorage
+      router.push("/signin"); // Arahkan ke login
+    }
+    // Tangani error jika perlu
+    else {
+      const data = await res.json();
+      throw new Error(data.message || "Logout failed");
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ login, register, logout }}>
+    <AuthContext.Provider value={{ token, login, register, logout }}>
       {children} {/* Render aplikasi di dalam provider */}
     </AuthContext.Provider>
   );

@@ -16,11 +16,22 @@ export default function SignInForm() {
   // Fungsi handle submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Cegah reload halaman
+    const toastId = toast.loading("Sedang Memproses", { theme: "dark" });
     try {
       await login(username, password); // Panggil login
-      toast.success("Login successful");
+      toast.update(toastId, {
+        render: "Login successful",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
     } catch {
-      toast.error("Username & Password Invalid"); // Set error jika gagal
+      toast.update(toastId, {
+        render: "Username & Password Salah",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      }); // Set error jika gagal
     }
   };
 

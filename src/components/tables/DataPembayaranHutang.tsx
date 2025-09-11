@@ -9,19 +9,17 @@ import {
 } from "../ui/table";
 import Link from "next/link";
 import { InfoIcon } from "@/icons";
-import Badge from "../ui/badge/Badge";
 import Image from "next/image";
 import clsx from "clsx";
 
 interface Order {
   id: number;
   kode_supplier: string;
-  kode_pembelian: string;
+  kode_pembayaran: string;
   tanggal: string;
-  termin: string;
-  tempo: string;
-  total_harga: string;
-  sisa_hutang: string;
+  via: string;
+  bank: string;
+  jumlah_bayar: string;
 }
 
 export default function DataHistoriPembayaranHutang({
@@ -30,17 +28,10 @@ export default function DataHistoriPembayaranHutang({
   kode_supplier: string;
 }) {
   const [data, setData] = useState<Order[]>([]);
-  const [dataPembayaran, setDataPembayaran] = useState<
-    {
-      id: number;
-      kode_pembelian: string;
-      jumlah_bayar: number;
-    }[]
-  >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  //   fetch data pembayaran untuk menangkap pembayaran
+  // fetch data pembelian dari supplier
   useEffect(() => {
     const token = localStorage.getItem("token");
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pembayaran-hutang`, {
@@ -51,24 +42,11 @@ export default function DataHistoriPembayaranHutang({
       },
     })
       .then((response) => response.json())
-      .then(setDataPembayaran)
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
-
-  // fetch data pembelian dari supplier
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pembelian-supplier`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
       .then(setData)
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
+
+  console.log("data", data);
 
   // Format Rupiah function
   function formatRupiah(value: string | number) {
@@ -88,8 +66,6 @@ export default function DataHistoriPembayaranHutang({
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   // --- Pagination logic ---
-
-  console.log(dataPembayaran);
   return (
     <div className="flex flex-col">
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -103,7 +79,7 @@ export default function DataHistoriPembayaranHutang({
                     isHeader
                     className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
                   >
-                    Kode Pembelian
+                    Kode Pembayaran
                   </TableCell>
                   <TableCell
                     isHeader
@@ -115,25 +91,19 @@ export default function DataHistoriPembayaranHutang({
                     isHeader
                     className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
                   >
-                    Termin
+                    Via
                   </TableCell>
                   <TableCell
                     isHeader
                     className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
                   >
-                    Tempo
+                    Bank
                   </TableCell>
                   <TableCell
                     isHeader
                     className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
                   >
-                    Total Harga
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
-                  >
-                    Status
+                    Jumlah Bayar
                   </TableCell>
                   <TableCell
                     isHeader
@@ -149,51 +119,19 @@ export default function DataHistoriPembayaranHutang({
                 {currentItems.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      {order.kode_pembelian}
+                      {order.kode_pembayaran}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
                       {order.tanggal}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      {order.termin === null ? "Cash" : order.termin}
+                      {order.via}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      {order.tempo === null ? "-" : order.tempo}
+                      {order.bank}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      Rp. {formatRupiah(order.total_harga)}
-                    </TableCell>
-                    <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      {order.termin === null ? (
-                        <Badge color="success" size="sm" variant="solid">
-                          Lunas
-                        </Badge>
-                      ) : dataPembayaran.find(
-                          (pembayaran) =>
-                            pembayaran.kode_pembelian === order.kode_pembelian,
-                        ) ? (
-                        <div>
-                          {Number(order.total_harga) -
-                            (dataPembayaran.find(
-                              (pembayaran) =>
-                                pembayaran.kode_pembelian ===
-                                order.kode_pembelian,
-                            )?.jumlah_bayar || 0) >
-                          0 ? (
-                            <Badge color="error" size="sm" variant="solid">
-                              Belum Lunas
-                            </Badge>
-                          ) : (
-                            <Badge color="success" size="sm" variant="solid">
-                              Lunas
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <Badge color="error" size="sm" variant="solid">
-                          Belum Lunas
-                        </Badge>
-                      )}
+                      Rp. {formatRupiah(order.jumlah_bayar)}
                     </TableCell>
                     <div className="mt-3 pl-6">
                       <Link
