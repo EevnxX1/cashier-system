@@ -9,51 +9,175 @@ import Button from "@/components/ui/button/Button";
 import SearchableSelect from "@/components/form/SearchableSelect";
 import DataPembelian from "@/components/tables/DataPembelian";
 import Link from "next/link";
+import Select from "@/components/form/Select";
+import clsx from "clsx";
+import Swal from "sweetalert2";
 
 export default function Pembelian() {
-  const options = [
-    { value: "CEMERLANG SPORT GROUP", label: "CEMERLANG SPORT GROUP" },
-    { value: "00002", label: "AKSESORIS TENIS" },
-    { value: "00003", label: "BAJU + KAOS" },
-  ];
+  const [tanggal, setTanggal] = useState("");
+  const [kodeSupplier, setkodeSupplier] = useState("");
+  const [nama_supplier, setNamaSupplier] = useState("");
+  const [saldo_hutang, setSaldoHutang] = useState("");
+  const [selectedKet, setSelectedKet] = useState("");
+  const [termin, setTermin] = useState("");
+  const [jatuhTempo, setJatuhTempo] = useState("");
+  const [options, setOptions] = useState<
+    {
+      value: string;
+      label: string;
+    }[]
+  >([]);
   const options2 = [
-    { value: "00001", label: "SUPPORTER" },
-    { value: "00002", label: "AKSESORIS TENIS" },
-    { value: "00003", label: "BAJU + KAOS" },
+    { value: "Kredit", label: "Kredit" },
+    { value: "Cash", label: "Cash" },
   ];
-  const handleSelectChange = (value: string) => {
-    console.log("Selected value:", value);
+
+  // list data yang akan terkirim di file dataPembelian
+  const [tanggalFix, setTanggalFix] = useState("");
+  const [kodeSupplierFix, setKodeSupplierFix] = useState("");
+  const [namaSupplierFix, setNamaSupplierFix] = useState("");
+  const [selectedKetFix, setSelectedKetFix] = useState("");
+  const [terminFix, setTerminFix] = useState("");
+  const [jatuhTempoFix, setJatuhTempoFix] = useState("");
+
+  const formatRupiah = (value: string | number) => {
+    const numberString = value.toString().replace(/\D/g, "");
+    return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
-  const [Tanggal, setTanggal] = useState("");
+
+  // const simpan semua data ke array dan kirim ke dataPembelian
+
+  // handle simpan data ke array
+  const handleClick = () => {
+    if (!tanggal || !kodeSupplier || !nama_supplier || !selectedKet) {
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Data belum lengkap!",
+      });
+      return;
+    }
+    // simpan data ke halaman dataPembelian
+    Swal.fire({
+      icon: "success",
+      title: "Berhasil",
+      text: "Pembelian Berhasil Ditambahkan",
+      background: "#23272a", // warna gelap
+      color: "#fff", // teks putih
+    });
+    setTimeout(() => {
+      setTanggalFix(tanggal);
+      setKodeSupplierFix(kodeSupplier);
+      setNamaSupplierFix(nama_supplier);
+      setSelectedKetFix(selectedKet);
+      setTerminFix(termin);
+      setJatuhTempoFix(jatuhTempo);
+
+      // hilangkan formPembelian jika sudah menginput
+      const formPembelian = document.getElementById("formPembelian");
+      if (formPembelian) {
+        formPembelian.style.display = "none";
+      }
+    }, 300);
+  };
+
+  // fetch supplier
+  useEffect(() => {
+    // Fetch jenis options from API
+    const fetchSupplierOptions = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/supplier`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const data = await response.json();
+        const formattedOptions = data.map(
+          (item: { kode_supplier: string; nama_supplier: string }) => ({
+            value: item.kode_supplier,
+            label: item.nama_supplier,
+          }),
+        );
+        setOptions(formattedOptions);
+      } catch (error) {
+        console.error("Error fetching Supplier options:", error);
+      }
+    };
+    fetchSupplierOptions();
+  }, []);
 
   useEffect(() => {
     const now = new Date();
     const formatted = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
     setTanggal(formatted);
+    setJatuhTempo(formatted);
   }, []);
+
+  // jika supplier sudah di pilih get nama supplier dan saldo hutangnya
+  useEffect(() => {
+    const supplier = options.find((item) => item.value === kodeSupplier);
+    if (supplier) {
+      setNamaSupplier(supplier.label);
+      const token = localStorage.getItem("token");
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/supplier`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const supplier = data.find(
+            (item: { kode_supplier: string }) =>
+              item.kode_supplier === kodeSupplier,
+          );
+          if (supplier) {
+            setSaldoHutang(supplier.saldo_hutang);
+          }
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [kodeSupplier, options]);
+
+  useEffect(() => {
+    if (selectedKet === "Cash") {
+      setTermin("");
+      setJatuhTempo("");
+    }
+  }, [selectedKet]);
+
+  // tanggal jatuh tempo bertambah harinya sesuai jumlah termin
+  useEffect(() => {
+    if (termin !== "") {
+      const now = new Date();
+      now.setDate(now.getDate() + parseInt(termin));
+      const formatted = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      setJatuhTempo(formatted);
+    } else {
+      setJatuhTempo(tanggal);
+    }
+  }, [termin, tanggal]);
+
   return (
     <div>
       <PageBreadcrumb pageTitle="Pembelian Barang" />
       <ComponentCard title="Input Pembelian" className="mb-5">
-        <form className="space-y-6">
-          <div className="flex justify-between">
-            <div className="w-[49%]">
-              <DatePicker
-                id="date-picker"
-                label="Tanggal"
-                placeholder="Select a date"
-                defaultDate={Tanggal}
-                onChange={(dates, currentDateString) => {
-                  // Handle your logic
-                  console.log({ dates, currentDateString });
-                  setTanggal(currentDateString);
-                }}
-              />
-            </div>
-            <div className="w-[49%]">
-              <Label>No Faktur</Label>
-              <Input defaultValue={"000001"} disabled></Input>
-            </div>
+        <form className="space-y-6" id="formPembelian">
+          <div className=" ">
+            <DatePicker
+              id="tanggal"
+              label="Tanggal"
+              placeholder="Select a date"
+              defaultDate={tanggal}
+              onChange={(dates, currentDateString) => {
+                // Handle your logic
+                console.log({ dates, currentDateString });
+                setTanggal(currentDateString);
+              }}
+            />
           </div>
           <div className="flex justify-between">
             <div className="w-[70%]">
@@ -61,84 +185,82 @@ export default function Pembelian() {
               <SearchableSelect
                 options={options}
                 placeholder="Pilih Supplier"
-                onChange={handleSelectChange}
+                onChange={(e) => {
+                  setkodeSupplier(e);
+                }}
                 className="dark:bg-dark-900"
               />
             </div>
             <div className="w-[28%]">
               <Label>Saldo Hutang</Label>
-              <Input defaultValue={"255.000"} disabled></Input>
+              <Input defaultValue={formatRupiah(saldo_hutang)} disabled></Input>
             </div>
           </div>
           <div className="flex justify-between">
             <div className="w-[23%]">
-              <Label>Termin</Label>
-              <Input></Input>
-            </div>
-            <div className="pointer-events-none w-[50%]">
-              <DatePicker
-                id="date-picker"
-                label="Tanggal Jatuh Tempo"
-                placeholder="Select a date"
-                defaultDate={Tanggal}
-                onChange={(dates, currentDateString) => {
-                  // Handle your logic
-                  console.log({ dates, currentDateString });
-                  setTanggal(currentDateString);
-                }}
-              />
-            </div>
-            <div className="w-[23%]">
-              <Label>Ket</Label>
-              <Input defaultValue={"Beli KREDIT"} disabled></Input>
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <div className="w-[50%]">
-              <Label>Nama Barang</Label>
-              <SearchableSelect
+              <Label>Ket Pembelian</Label>
+              <Select
                 options={options2}
-                placeholder="Pilih Barang"
-                onChange={handleSelectChange}
+                placeholder="Pilih Ket Pembelian"
+                onChange={(e) => {
+                  setSelectedKet(e);
+                }}
                 className="dark:bg-dark-900"
               />
             </div>
-            <div className="w-[22%]">
-              <Label>Stok Barang Saat Ini</Label>
-              <Input defaultValue={"104"} disabled></Input>
+            <div
+              className={clsx("invisible w-[23%]", {
+                visible: selectedKet === "Kredit",
+              })}
+            >
+              <Label>Termin</Label>
+              <Input
+                type="number"
+                defaultValue={termin}
+                onChange={(e) => {
+                  setTermin(e.target.value);
+                }}
+              ></Input>
             </div>
-            <div className="w-[15%]">
-              <Label>Barcode</Label>
-              <Input defaultValue={"00001"} disabled></Input>
-            </div>
-            <div className="w-[10%]">
-              <Label>Satuan</Label>
-              <Input defaultValue={"PCS"} disabled></Input>
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <div className="w-[49%]">
-              <Label>Harga Beli</Label>
-              <Input defaultValue={"70.000"} disabled></Input>
-            </div>
-            <div className="w-[49%]">
-              <Label>Harga Satuan</Label>
-              <Input></Input>
+            <div
+              className={clsx("pointer-events-none invisible w-[50%]", {
+                visible: selectedKet === "Kredit",
+              })}
+            >
+              <DatePicker
+                id="jatuhTempo"
+                label="Tanggal Jatuh Tempo"
+                placeholder="Select a date"
+                defaultDate={jatuhTempo}
+                onChange={(dates, currentDateString) => {
+                  // Handle your logic
+                  console.log({ dates, currentDateString });
+                  setJatuhTempo(currentDateString);
+                }}
+              />
             </div>
           </div>
           <div>
-            <Label>Total Harga</Label>
-            <Input defaultValue={"4.500.000"} disabled></Input>
-          </div>
-          <div>
-            <Button size="md" variant="primary">
+            <Button
+              size="md"
+              variant="primary"
+              onClick={handleClick}
+              type="button"
+            >
               Tambah Pembelian
             </Button>
           </div>
         </form>
       </ComponentCard>
       <ComponentCard title="Tabel Data Pembelian">
-        <DataPembelian />
+        <DataPembelian
+          tanggal={tanggalFix}
+          kodeSupplier={kodeSupplierFix}
+          namaSupplier={namaSupplierFix}
+          ket={selectedKetFix}
+          termin={terminFix}
+          tgl_jth_tempo={jatuhTempoFix}
+        />
       </ComponentCard>
       <ComponentCard title="More Options" className="mt-5">
         <div className="flex gap-x-5">

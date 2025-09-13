@@ -134,8 +134,8 @@ export default function Stok() {
           showConfirmButton: false,
         });
         setTimeout(() => {
-          window.location.reload()
-        }, 2000)
+          window.location.reload();
+        }, 2000);
         setNamaBarang("");
         setSatuan("");
         setJenis("");

@@ -7,15 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import Link from "next/link";
 import { InfoIcon } from "@/icons";
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
 import clsx from "clsx";
-import ComponentCard from "../common/ComponentCard";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { format } from "path";
 
 const MySwal = withReactContent(Swal);
 
