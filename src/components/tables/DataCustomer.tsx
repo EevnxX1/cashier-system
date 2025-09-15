@@ -22,8 +22,8 @@ const MySwal = withReactContent(Swal);
 
 interface Order {
   id: number;
-  kode_supplier: string;
-  nama_supplier: string;
+  kode_customer: string;
+  nama_customer: string;
   alamat: string;
   kota: string;
   syarat_bayar: string;
@@ -50,7 +50,7 @@ const handleCreate = async () => {
   // Komponen form create yang akan ditampilkan di dalam modal SweetAlert2
   function CreateForm() {
     // State lokal untuk setiap input di modal
-    const [namaSupplier, setNamaSupplier] = useState("");
+    const [namaCustomer, setNamaCustomer] = useState("");
     const [alamat, setAlamat] = useState("");
     const [kota, setKota] = useState("");
     const [syaratBayar, setSyaratBayar] = useState("");
@@ -73,10 +73,10 @@ const handleCreate = async () => {
       <div>
         {/* Input Nama Supplier */}
         <div className="mb-5 text-left">
-          <label>Nama Supplier</label>
+          <label>Nama Customer</label>
           <Input
-            value={namaSupplier}
-            onChange={(e) => setNamaSupplier(e.target.value)}
+            value={namaCustomer}
+            onChange={(e) => setNamaCustomer(e.target.value)}
             className="mt-1"
           />
         </div>
@@ -164,7 +164,7 @@ const handleCreate = async () => {
             onClick={async () => {
               // Validasi: semua field wajib diisi
               if (
-                !namaSupplier ||
+                !namaCustomer ||
                 !alamat ||
                 !telepon ||
                 !kota ||
@@ -179,7 +179,7 @@ const handleCreate = async () => {
               }
               // Kirim create ke API
               const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/supplier`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/customer`,
                 {
                   method: "POST",
                   headers: {
@@ -187,7 +187,7 @@ const handleCreate = async () => {
                     Authorization: `Bearer ${token}`,
                   },
                   body: JSON.stringify({
-                    nama_supplier: namaSupplier,
+                    nama_customer: namaCustomer,
                     alamat: alamat,
                     kota: kota,
                     syarat_bayar: syaratBayar,
@@ -229,7 +229,7 @@ const handleCreate = async () => {
 
   // Tampilkan modal SweetAlert2 dengan form create di dalamnya
   await MySwal.fire({
-    title: "Create Data Supplier",
+    title: "Create Data Customer",
     html: <CreateForm />,
     showConfirmButton: false,
     showCancelButton: false,
@@ -273,7 +273,7 @@ const handleEdit = async (order: Order) => {
   // Komponen form edit yang akan ditampilkan di dalam modal SweetAlert2
   function EditForm() {
     // State lokal untuk setiap input di modal
-    const [namaSupplier, setNamaSupplier] = useState(order.nama_supplier);
+    const [namaCustomer, setNamaCustomer] = useState(order.nama_customer);
     const [alamat, setAlamat] = useState(order.alamat);
     const [kota, setKota] = useState(order.kota);
     const [syaratBayar, setSyaratBayar] = useState(order.syarat_bayar);
@@ -294,10 +294,10 @@ const handleEdit = async (order: Order) => {
       <div>
         {/* Input Nama Supplier */}
         <div className="mb-5 text-left">
-          <label>Nama Supplier</label>
+          <label>Nama Customer</label>
           <Input
-            value={namaSupplier}
-            onChange={(e) => setNamaSupplier(e.target.value)}
+            value={namaCustomer}
+            onChange={(e) => setNamaCustomer(e.target.value)}
             className="mt-1"
           />
         </div>
@@ -384,18 +384,18 @@ const handleEdit = async (order: Order) => {
             size="sm"
             onClick={async () => {
               // Validasi: semua field wajib diisi
-              console.log("Kode Supplier:");
-              console.log("Nama Supplier:", namaSupplier);
-              console.log("Alamat:", alamat);
-              console.log("Kota:", kota);
-              console.log("Syarat Bayar:", syaratBayar);
-              console.log("Telepon:", telepon);
-              console.log("Nama Kontak:", namaKontak);
-              console.log("Bank:", bank);
-              console.log("Nomor Rekening:", nomorRekening);
-              console.log("Saldo Hutang:", saldoHutang);
+              //   console.log("Kode Supplier:");
+              //   console.log("Nama Supplier:", namaSupplier);
+              //   console.log("Alamat:", alamat);
+              //   console.log("Kota:", kota);
+              //   console.log("Syarat Bayar:", syaratBayar);
+              //   console.log("Telepon:", telepon);
+              //   console.log("Nama Kontak:", namaKontak);
+              //   console.log("Bank:", bank);
+              //   console.log("Nomor Rekening:", nomorRekening);
+              //   console.log("Saldo Hutang:", saldoHutang);
               if (
-                !namaSupplier ||
+                !namaCustomer ||
                 !alamat ||
                 !telepon ||
                 !kota ||
@@ -410,7 +410,7 @@ const handleEdit = async (order: Order) => {
               }
               // Kirim Update ke API
               const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/supplier/${order.kode_supplier}`,
+                `${process.env.NEXT_PUBLIC_API_URL}/api/customer/${order.kode_customer}`,
                 {
                   method: "PUT",
                   headers: {
@@ -418,7 +418,7 @@ const handleEdit = async (order: Order) => {
                     Authorization: `Bearer ${token}`,
                   },
                   body: JSON.stringify({
-                    nama_supplier: namaSupplier,
+                    nama_customer: namaCustomer,
                     alamat: alamat,
                     kota: kota,
                     syarat_bayar: syaratBayar,
@@ -459,7 +459,7 @@ const handleEdit = async (order: Order) => {
   }
   // Tampilkan modal SweetAlert2 dengan form edit di dalamnya
   await MySwal.fire({
-    title: "Edit Data Supplier",
+    title: "Edit Data Customer",
     html: <EditForm />,
     showConfirmButton: false,
     showCancelButton: false,
@@ -499,7 +499,7 @@ export default function DataSupplier() {
   // fetch data supplier from api
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/supplier`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customer`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -531,10 +531,10 @@ export default function DataSupplier() {
         </div>
         <div className="flex gap-x-3">
           <Button size="sm" onClick={handleCreate}>
-            Tambah Supplier
+            Tambah Customer
           </Button>
           <Link href={"/supplier"}>
-            <Button size="sm">Cetak Supplier</Button>
+            <Button size="sm">Cetak Customer</Button>
           </Link>
         </div>
       </div>
@@ -555,7 +555,7 @@ export default function DataSupplier() {
                     isHeader
                     className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
                   >
-                    Nama Supplier
+                    Nama Customer
                   </TableCell>
                   <TableCell
                     isHeader
@@ -592,7 +592,7 @@ export default function DataSupplier() {
                       {index + 1}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      {order.nama_supplier}
+                      {order.nama_customer}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
                       {order.kota}
@@ -616,7 +616,7 @@ export default function DataSupplier() {
                           className={"cursor-pointer text-red-800"}
                           onClick={() => {
                             Swal.fire({
-                              title: `Apakah Anda yakin Ingin Menghapus ${order.nama_supplier}?`,
+                              title: `Apakah Anda yakin Ingin Menghapus ${order.nama_customer}?`,
                               text: "Data yang dihapus tidak dapat dikembalikan!",
                               icon: "warning",
                               showCancelButton: true,
@@ -628,7 +628,7 @@ export default function DataSupplier() {
                               if (result.isConfirmed) {
                                 const token = localStorage.getItem("token");
                                 fetch(
-                                  `${process.env.NEXT_PUBLIC_API_URL}/api/supplier/${order.id}`,
+                                  `${process.env.NEXT_PUBLIC_API_URL}/api/customer/${order.id}`,
                                   {
                                     method: "DELETE",
                                     headers: {
@@ -679,7 +679,7 @@ export default function DataSupplier() {
                         </button>
                         <span className="mr-[4px] ml-[4px] border border-gray-500"></span>
                         <Link
-                          href={`/supplier/detail?id_supplier=${order.id}`}
+                          href={`/customer/detail?id_supplier=${order.id}`}
                           className="mt-2"
                         >
                           <button

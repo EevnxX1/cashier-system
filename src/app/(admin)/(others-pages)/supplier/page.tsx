@@ -4,7 +4,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
 import DataSupplier from "@/components/tables/DataSupplier";
 
-export default function Stok() {
+export default function Supplier() {
   return (
     <div>
     <PageBreadcrumb pageTitle="Supplier"/>
