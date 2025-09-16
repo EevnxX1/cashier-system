@@ -64,12 +64,6 @@ export default function PembelianKredit() {
       setNamaCustomerFix(namaCustomer);
       setTerminFix(termin);
       setJatuhTempoFix(jatuhTempo);
-
-      // hilangkan formPembelian jika sudah menginput
-      const formPembelian = document.getElementById("formPembelian");
-      if (formPembelian) {
-        formPembelian.style.display = "none";
-      }
     }, 300);
   };
 
@@ -149,8 +143,14 @@ export default function PembelianKredit() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Penjualan Kredit Barang" />
-      <ComponentCard title="Input Pembelian" className="mb-5">
-        <form className="space-y-6" id="formPembelian">
+      <ComponentCard
+        title="Input Pembelian"
+        className={clsx("mt-5", {
+          hidden: tanggalFix && kodeCustomerFix && terminFix,
+          block: !tanggalFix && !kodeCustomerFix && !terminFix,
+        })}
+      >
+        <form className="space-y-6">
           <div className=" ">
             <DatePicker
               id="tanggal"
@@ -213,12 +213,18 @@ export default function PembelianKredit() {
               onClick={handleClick}
               type="button"
             >
-              Tambah Pembelian
+              Tambah Customer
             </Button>
           </div>
         </form>
       </ComponentCard>
-      <ComponentCard title="Tabel Data Pembelian">
+      <ComponentCard
+        title="Tabel Data Pembelian"
+        className={clsx({
+          hidden: !tanggalFix && !kodeCustomerFix && !terminFix,
+          block: tanggalFix && kodeCustomerFix && terminFix,
+        })}
+      >
         <DataPembelianKredit
           tanggal={tanggalFix}
           kodeCustomer={kodeCustomerFix}
@@ -229,6 +235,9 @@ export default function PembelianKredit() {
       </ComponentCard>
       <ComponentCard title="More Options" className="mt-5">
         <div className="flex gap-x-5">
+          <Link href={"/pembelian/laporan"}>
+            <Button size="md">Laporan Kredit</Button>
+          </Link>
           <Link href={"/pembelian/ReturPembelian"}>
             <Button size="md">Retur Pembelian</Button>
           </Link>
@@ -237,9 +246,6 @@ export default function PembelianKredit() {
           </Link>
           <Link href={"/pembelian/DaftarHutang"}>
             <Button size="md">Pembayaran Hutang</Button>
-          </Link>
-          <Link href={"/pembelian/DaftarHutang"}>
-            <Button size="md">Laporan Pembelian</Button>
           </Link>
         </div>
       </ComponentCard>

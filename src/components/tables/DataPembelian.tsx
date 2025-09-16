@@ -21,7 +21,8 @@ const MySwal = withReactContent(Swal);
 interface PembelianItem {
   kode_produk: string;
   qty: number;
-  harga: number;
+  harga_customer: number;
+  harga_supplier: number;
 }
 
 interface produk {
@@ -88,7 +89,8 @@ export default function DataPembelian({
       const token = localStorage.getItem("token");
       const [kodeBarang, setKodeBarang] = useState("");
       const [jumlah, setJumlah] = useState("");
-      const [harga, setHarga] = useState("");
+      const [hargaCustomer, setHargaCustomer] = useState("");
+      const [hargaSupplier, setHargaSupplier] = useState("");
       const [tot_hrg, setTot_hrg] = useState("");
       const [stok, setStok] = useState("");
 
@@ -119,7 +121,7 @@ export default function DataPembelian({
       }, [token]);
       // fungsi fetch option list barang dari API
 
-      // Jika User sudah memilih barang keluarkan data barang itu dari option list
+      // Jika User sudah memilih barang, keluarkan data barang itu dari option list
       useEffect(() => {
         const selectedOption = options.find(
           (option) => option.value === kodeBarang,
@@ -133,14 +135,13 @@ export default function DataPembelian({
             .then((res) => res.json())
             .then((data) => {
               const selectedData = data.find(
-                (item: { kode_produk: string; stok: string }) =>
+                (item: { kode_produk: string }) =>
                   item.kode_produk === kodeBarang,
               );
               if (selectedData) {
                 setStok(selectedData.stok);
-                setHarga(selectedData.harga_suplier);
-                console.log("stok:", selectedData.stok);
-                console.log("harga:", selectedData.harga_suplier);
+                setHargaCustomer(selectedData.harga_customer);
+                setHargaSupplier(selectedData.harga_suplier);
               }
             });
         }
@@ -149,10 +150,10 @@ export default function DataPembelian({
 
       // jika user mengetik qty, maka kalikan dengan harga barang itu
       useEffect(() => {
-        if (jumlah && harga) {
-          setTot_hrg((parseInt(jumlah) * parseInt(harga)).toString());
+        if (jumlah && hargaSupplier) {
+          setTot_hrg((parseInt(jumlah) * parseInt(hargaSupplier)).toString());
         }
-      }, [jumlah, harga]);
+      }, [jumlah, hargaSupplier]);
 
       // ... tambahkan field lainnya
 
@@ -165,11 +166,12 @@ export default function DataPembelian({
 
       // Fungsi untuk menyimpan data ke data sementara
       const handleAddItem = () => {
-        if (kodeBarang && jumlah && harga) {
+        if (kodeBarang && jumlah && hargaSupplier && hargaCustomer) {
           const newItem: PembelianItem = {
             kode_produk: kodeBarang,
             qty: parseInt(jumlah),
-            harga: parseInt(harga),
+            harga_customer: parseInt(hargaCustomer),
+            harga_supplier: parseInt(hargaSupplier),
           };
           setPembelianItems((prevData) => ({
             ...prevData,
@@ -187,7 +189,6 @@ export default function DataPembelian({
       // Return JSX form create yang akan muncul di modal
       return (
         <div>
-          {/* Input Nama Supplier */}
           <div className="mb-5 text-left">
             <label>Nama Barang</label>
             <SearchableSelect
@@ -197,21 +198,30 @@ export default function DataPembelian({
               placeholder="Pilih Nama Barang"
             />
           </div>
-          {/* Input Alamat */}
           <div className="mb-5 text-left">
             <label>Stok Barang Saat Ini</label>
             <Input value={stok} className="mt-1" disabled />
           </div>
-          {/* Input Kota */}
           <div className="mb-5 text-left">
             <label>Harga Barang Satuan</label>
             <Input
-              value={formatRupiah(harga)}
-              onChange={(e) => setHarga(e.target.value.replace(/\D/g, ""))}
+              value={formatRupiah(hargaSupplier)}
+              onChange={(e) =>
+                setHargaSupplier(e.target.value.replace(/\D/g, ""))
+              }
               className="mt-1"
             />
           </div>
-          {/* Input Syarat Bayar */}
+          <div className="mb-5 text-left">
+            <label>Harga Customer</label>
+            <Input
+              value={formatRupiah(hargaCustomer)}
+              onChange={(e) =>
+                setHargaCustomer(e.target.value.replace(/\D/g, ""))
+              }
+              className="mt-1"
+            />
+          </div>
           <div className="mb-5 text-left">
             <label>Jumlah Barang</label>
             <Input
@@ -220,7 +230,6 @@ export default function DataPembelian({
               className="mt-1"
             />
           </div>
-          {/* Input Telepon */}
           <div className="mb-5 text-left">
             <label>Total Harga</label>
             <Input value={formatRupiah(tot_hrg)} disabled className="mt-1" />
@@ -451,7 +460,13 @@ export default function DataPembelian({
                     isHeader
                     className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
                   >
-                    Harga
+                    Harga Supplier
+                  </TableCell>
+                  <TableCell
+                    isHeader
+                    className="text-theme-xs px-5 py-3 text-start font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Harga Customer
                   </TableCell>
                   <TableCell
                     isHeader
@@ -490,13 +505,16 @@ export default function DataPembelian({
                       {order.qty}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
-                      Rp. {formatRupiah(order.harga)}
+                      Rp. {formatRupiah(order.harga_supplier)}
+                    </TableCell>
+                    <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
+                      Rp. {formatRupiah(order.harga_customer)}
                     </TableCell>
                     <TableCell className="text-theme-sm px-4 py-3 text-start text-gray-500 dark:text-gray-400">
                       Rp.{" "}
                       {
                         // menghitung total harga
-                        formatRupiah(order.qty * order.harga)
+                        formatRupiah(order.qty * order.harga_supplier)
                       }
                     </TableCell>
                     <div className="mt-3 pl-7">
@@ -560,7 +578,7 @@ export default function DataPembelian({
               Rp.{" "}
               {formatRupiah(
                 pembelianItems.items.reduce(
-                  (total, item) => total + item.qty * item.harga,
+                  (total, item) => total + item.qty * item.harga_supplier,
                   0,
                 ),
               )}
