@@ -90,11 +90,6 @@ const handleDetail = (order: Order) => {
               <h2>Subtotal</h2>
               <p>Rp. {formatRupiah(String(item.subtotal))}</p>
             </div>
-
-            {/* <p>Nama Produk: {item.produk.nama_produk}</p>
-            <p>Kode Produk: {item.produk.kode_produk}</p>
-            <p>Qty: {item.qty}</p>
-            <p>Subtotal: {item.subtotal}</p> */}
           </section>
         ))}
       </div>

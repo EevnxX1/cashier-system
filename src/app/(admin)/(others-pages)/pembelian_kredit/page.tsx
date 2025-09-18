@@ -235,17 +235,11 @@ export default function PembelianKredit() {
       </ComponentCard>
       <ComponentCard title="More Options" className="mt-5">
         <div className="flex gap-x-5">
-          <Link href={"/pembelian/laporan"}>
-            <Button size="md">Laporan Kredit</Button>
+          <Link href={"/pembelian_kredit/laporan"}>
+            <Button size="md">Daftar Hutang</Button>
           </Link>
           <Link href={"/pembelian/ReturPembelian"}>
             <Button size="md">Retur Pembelian</Button>
-          </Link>
-          <Link href={"/pembelian/DaftarHutang"}>
-            <Button size="md">Daftar Hutang</Button>
-          </Link>
-          <Link href={"/pembelian/DaftarHutang"}>
-            <Button size="md">Pembayaran Hutang</Button>
           </Link>
         </div>
       </ComponentCard>

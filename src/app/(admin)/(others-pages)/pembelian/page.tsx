@@ -72,12 +72,6 @@ export default function Pembelian() {
       setSelectedKetFix(selectedKet);
       setTerminFix(termin);
       setJatuhTempoFix(jatuhTempo);
-
-      // hilangkan formPembelian jika sudah menginput
-      const formPembelian = document.getElementById("formPembelian");
-      if (formPembelian) {
-        formPembelian.style.display = "none";
-      }
     }, 300);
   };
 
@@ -164,8 +158,14 @@ export default function Pembelian() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Pembelian Barang" />
-      <ComponentCard title="Input Pembelian" className="mb-5">
-        <form className="space-y-6" id="formPembelian">
+      <ComponentCard
+        title="Input Pembelian"
+        className={clsx("mb-5", {
+          hidden: tanggalFix && kodeSupplierFix && selectedKetFix,
+          block: !tanggalFix && !kodeSupplierFix && !selectedKetFix,
+        })}
+      >
+        <form className="space-y-6">
           <div className=" ">
             <DatePicker
               id="tanggal"
@@ -252,7 +252,13 @@ export default function Pembelian() {
           </div>
         </form>
       </ComponentCard>
-      <ComponentCard title="Tabel Data Pembelian">
+      <ComponentCard
+        title="Tabel Data Pembelian"
+        className={clsx({
+          block: tanggalFix && kodeSupplierFix && selectedKetFix,
+          hidden: !tanggalFix && !kodeSupplierFix && !selectedKetFix,
+        })}
+      >
         <DataPembelian
           tanggal={tanggalFix}
           kodeSupplier={kodeSupplierFix}
@@ -264,17 +270,11 @@ export default function Pembelian() {
       </ComponentCard>
       <ComponentCard title="More Options" className="mt-5">
         <div className="flex gap-x-5">
+          <Link href={"/pembelian/laporan"}>
+            <Button size="md">Daftar Pembelian Supplier</Button>
+          </Link>
           <Link href={"/pembelian/ReturPembelian"}>
             <Button size="md">Retur Pembelian</Button>
-          </Link>
-          <Link href={"/pembelian/DaftarHutang"}>
-            <Button size="md">Daftar Hutang</Button>
-          </Link>
-          <Link href={"/pembelian/DaftarHutang"}>
-            <Button size="md">Pembayaran Hutang</Button>
-          </Link>
-          <Link href={"/pembelian/DaftarHutang"}>
-            <Button size="md">Laporan Pembelian</Button>
           </Link>
         </div>
       </ComponentCard>
