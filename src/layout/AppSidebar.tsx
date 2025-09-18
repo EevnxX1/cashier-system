@@ -50,7 +50,7 @@ const navItems: NavItem[] = [
   {
     icon: <CalenderIcon />,
     name: "Biaya",
-    path: "/",
+    path: "/pengeluaran",
   },
   {
     icon: <FolderIcon />,
