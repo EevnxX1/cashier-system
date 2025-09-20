@@ -159,7 +159,6 @@ const handleEdit = async (order: Order) => {
                 !namaProduk ||
                 !kodeKategori ||
                 !satuan ||
-                !stok ||
                 !hargaCustomer ||
                 !hargaSupplier
               ) {

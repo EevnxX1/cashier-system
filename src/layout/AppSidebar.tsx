@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
   {
     icon: <CalenderIcon />,
     name: "Penjulan Cash",
-    path: "/",
+    path: "/penjualan_cash",
   },
   {
     icon: <CalenderIcon />,

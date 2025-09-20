@@ -27,6 +27,7 @@ interface produk {
   kode_produk: string;
   nama_produk: string;
   harga_customer: string;
+  stok: number;
 }
 
 export default function DataPembelianKredit({
@@ -311,29 +312,50 @@ export default function DataPembelianKredit({
     // apakah data sudah lengkap
     const data = pembelianItems;
     if (data.items.length !== 0) {
-      const token = localStorage.getItem("token");
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pembelian-kredit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      })
-        .then((res) => res.json())
-        .then(() => {
-          Swal.fire({
-            icon: "success",
-            title: "Data berhasil disimpan",
-            background: "#23272a",
-            color: "#fff",
-            timer: 2000,
-            showConfirmButton: false,
-          }).then(() => {
-            window.location.reload();
-          });
+      const barangTidakMencukupi = data.items.find((item) => {
+        const produkItem = produk.find(
+          (prod) => prod.kode_produk === item.kode_produk,
+        );
+        return item.qty > (produkItem?.stok ?? 0);
+      });
+      if (barangTidakMencukupi) {
+        const kodeProdukTidakMencukupi = barangTidakMencukupi.kode_produk;
+        const namaProdukTidakMencukupi =
+          produk.find((prod) => prod.kode_produk === kodeProdukTidakMencukupi)
+            ?.nama_produk ?? "Produk tidak ditemukan";
+        Swal.fire({
+          icon: "error",
+          title: `Stok barang ${namaProdukTidakMencukupi} tidak mencukupi`,
+          background: "#23272a",
+          color: "#fff",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        const token = localStorage.getItem("token");
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pembelian-kredit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
         })
-        .catch((err) => console.error(err));
+          .then((res) => res.json())
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Data berhasil disimpan",
+              background: "#23272a",
+              color: "#fff",
+              timer: 2000,
+              showConfirmButton: false,
+            }).then(() => {
+              window.location.reload();
+            });
+          })
+          .catch((err) => console.error(err));
+      }
     } else {
       Swal.fire({
         icon: "error",
