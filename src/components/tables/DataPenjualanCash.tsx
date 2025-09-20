@@ -33,6 +33,7 @@ export default function DataPenjualanCash() {
   // (Sistem data sementara) 1. buat state lokal untuk menyimpan data sejumlah barang
   const [dataPembelian, setDataPembelian] = useState({
     tanggal: "",
+    total_bayar: "",
     items: [] as PembelianTunai[],
   });
   // (sistem data sementara)
@@ -50,6 +51,14 @@ export default function DataPenjualanCash() {
       tanggal: new Date().toISOString().split("T")[0],
     }));
   }, []);
+
+  //   jika user mengetik total bayar maka kita simpan di dataPembelian
+  useEffect(() => {
+    setDataPembelian((prevData) => ({
+      ...prevData,
+      total_bayar: totalBayar,
+    }));
+  }, [totalBayar]);
 
   // liat data pengeluaran apakah dia bertambah atau tidak
   useEffect(() => {
@@ -375,7 +384,6 @@ export default function DataPenjualanCash() {
   useEffect(() => {
     if (totalBayar && totalHarga) {
       const kembalian = Number(totalBayar) - totalHarga;
-      console.log("kembalian:", kembalian);
       if (kembalian > 0) {
         setTotalKembalian(kembalian);
       } else {
